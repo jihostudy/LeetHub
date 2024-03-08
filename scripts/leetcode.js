@@ -67,7 +67,7 @@ const upload = (
   cb = undefined,
 ) => {
   // To validate user, load user object from GitHub.
-  const URL = `https://api.github.com/repos/${hook}/contents/${directory}/${filename}`;
+  const URL = `https://api.github.com/repos/${hook}/contents/LeetCode-PS/${difficulty}/${directory}/${filename}`;
 
   /* Define Payload */
   let data = {
@@ -137,7 +137,7 @@ const update = (
   prepend,
   cb = undefined,
 ) => {
-  const URL = `https://api.github.com/repos/${hook}/contents/${directory}/README.md`;
+  const URL = `https://api.github.com/repos/${hook}/contents/LeetCode-PS/${difficulty}/${directory}/README.md`;
 
   /* Read from existing file on GitHub */
   const xhr = new XMLHttpRequest();
@@ -281,7 +281,7 @@ function findCode(
     submissionURL = submissionRef.href;
   }
 
-  console.log(`submission URL: ${submissionURL}`)
+  console.log(`submission URL: ${submissionURL}`);
 
   if (submissionURL != undefined) {
     /* Request for the submission details page */
@@ -439,16 +439,16 @@ function addLeadingZeros(title) {
 }
 
 // returns value from a "key":"value" pair in a given string. if key is not present, returns null
-function RegExKeyMatch(key, str){
-  const match = str.match(new RegExp(`"${key}":"([^"]+)"`))
-  return match ? match[1] : null
+function RegExKeyMatch(key, str) {
+  const match = str.match(new RegExp(`"${key}":"([^"]+)"`));
+  return match ? match[1] : null;
 }
 
 /* Parser function for the question and tags */
 async function parseQuestion() {
   var qtitle;
   var qbody;
-  
+
   // get base URL of leetcode problem
   var questionUrl = window.location.href;
   if (questionUrl.includes('/submissions/')) {
@@ -457,7 +457,7 @@ async function parseQuestion() {
       questionUrl.lastIndexOf('/submissions/') + 1,
     );
   }
-  
+
   var questionElem = document.getElementsByClassName(
     'content__u3I1 question-content__JfgR',
   );
@@ -492,8 +492,7 @@ async function parseQuestion() {
     // Final formatting of the contents of the README for each problem
     const markdown = `<h2><a href="${questionUrl}">${qtitle}</a></h2><h3>${difficulty}</h3><hr>${qbody}`;
     return markdown;
-  } 
-  else if (checkElem(questionDescriptionElem)) {
+  } else if (checkElem(questionDescriptionElem)) {
     let questionTitle = document.getElementsByClassName(
       'question-title',
     );
@@ -507,10 +506,9 @@ async function parseQuestion() {
     const markdown = `<h2>${questionTitle}</h2><hr>${questionBody}`;
 
     return markdown;
-  }
-  else{
+  } else {
     // user is using new version of LeetCode
-    
+
     /* 
      Many of the question details such as question title and difficulty is found in the
      HTML file at the question base URL, under a script with the id "__NEXT_DATA__"
@@ -520,20 +518,25 @@ async function parseQuestion() {
     */
 
     // make a http request to the base URL to get html file
-    let basePage = await fetch(questionUrl, {method: "GET"})
-    let questionData = await basePage.text()
-    
+    let basePage = await fetch(questionUrl, { method: 'GET' });
+    let questionData = await basePage.text();
+
     // from the html text, get title and difficulty of question
-    let questionNo = RegExKeyMatch("questionFrontendId", questionData)
-    let questionName = RegExKeyMatch("title", questionData)
-    difficulty = RegExKeyMatch("difficulty", questionData)
+    let questionNo = RegExKeyMatch(
+      'questionFrontendId',
+      questionData,
+    );
+    let questionName = RegExKeyMatch('title', questionData);
+    difficulty = RegExKeyMatch('difficulty', questionData);
 
     // form title and get question description
-    qtitle = `${questionNo}. ${questionName}`
-    qbody = document.head.querySelector('meta[name="description"]').content
-    
-    if(!qtitle){ // either using explore section or something went wrong
-      // TODO: look for the explore question data 
+    qtitle = `${questionNo}. ${questionName}`;
+    qbody = document.head.querySelector('meta[name="description"]')
+      .content;
+
+    if (!qtitle) {
+      // either using explore section or something went wrong
+      // TODO: look for the explore question data
       return null;
     }
 
@@ -545,44 +548,43 @@ async function parseQuestion() {
 
 /* For LeetCode's new UI, percentage int and decimal are seperated, but contained in a single div.
 The function brings them together to a single string */
-function parsePercentileNew(elem){
-  let spans = Array.from(elem.querySelectorAll("span"))
-  let percentage = ""
-  spans.forEach(elem => {
-    percentage += elem.textContent
-  })
+function parsePercentileNew(elem) {
+  let spans = Array.from(elem.querySelectorAll('span'));
+  let percentage = '';
+  spans.forEach((elem) => {
+    percentage += elem.textContent;
+  });
 
-  return percentage
+  return percentage;
 }
 
 /* Parser function for time/space stats */
 function parseStats() {
   let time, timePercentile, space, spacePercentile;
   const probStats = document.getElementsByClassName('data__HC-i');
-  
+
   if (checkElem(probStats)) {
     time = probStats[0].textContent;
     timePercentile = probStats[1].textContent;
     space = probStats[2].textContent;
     spacePercentile = probStats[3].textContent;
-  }
-  else{
+  } else {
     // user may be using a newer version of LeetCode
-    let newProbStats = document.getElementsByClassName("gap-y-2");
-    if(!checkElem(newProbStats)){
+    let newProbStats = document.getElementsByClassName('gap-y-2');
+    if (!checkElem(newProbStats)) {
       return null;
     }
 
     //for each stat (time, mem), get their values and percentiles
-    let stats = []
-    Array.from(newProbStats).forEach(stat => {
-      let [val, per] = stat.querySelectorAll("div")
-    
-      stats.push(val.querySelectorAll("*")[1].textContent)
-      stats.push(parsePercentileNew(per.querySelectorAll("*")[1]))
+    let stats = [];
+    Array.from(newProbStats).forEach((stat) => {
+      let [val, per] = stat.querySelectorAll('div');
+
+      stats.push(val.querySelectorAll('*')[1].textContent);
+      stats.push(parsePercentileNew(per.querySelectorAll('*')[1]));
     });
 
-    [time, timePercentile, space, spacePercentile] = stats
+    [time, timePercentile, space, spacePercentile] = stats;
   }
 
   // Format commit message
@@ -668,41 +670,40 @@ const loader = setInterval(async () => {
   let probType;
 
   // try get success tag for a normal problem in both old and new versions
-  
+
   // returns document query if there is an element with the correct class name and content
   const successfulOld = () => {
-    const successTag = document.getElementsByClassName('success__3Ai7')
+    const successTag = document.getElementsByClassName(
+      'success__3Ai7',
+    );
 
-    return (
-    checkElem(successTag) &&
-    successTag[0].className === 'success__3Ai7' &&
-    successTag[0].innerText.trim() === 'Success'
-    ) ?
-    successTag : null
-  }
+    return checkElem(successTag) &&
+      successTag[0].className === 'success__3Ai7' &&
+      successTag[0].innerText.trim() === 'Success'
+      ? successTag
+      : null;
+  };
 
   const successfulNew = () => {
-    const successTag = Array.from(document.getElementsByClassName("text-green-s")).filter(elem => elem.querySelector("svg"))
+    const successTag = Array.from(
+      document.getElementsByClassName('text-green-s'),
+    ).filter((elem) => elem.querySelector('svg'));
 
     // check if both the success icon exists and it is accompanies by the "Accepted" tag
-    return (
-      checkElem(successTag) &&
-      successTag[0].querySelector("span")?.textContent == "Accepted"
-    ) ?
-    successTag : null
-  }
+    return checkElem(successTag) &&
+      successTag[0].querySelector('span')?.textContent == 'Accepted'
+      ? successTag
+      : null;
+  };
 
   const successTag = successfulOld() || successfulNew() || [];
 
   // TODO: try get result state for an explore section problem in both old and new versions
   const resultState = document.getElementById('result-state');
-  
-  
+
   var success = false;
   // check success tag for a normal problem
-  if (
-    successTag.length
-  ) {
+  if (successTag.length) {
     //console.log(successTag[0]);
     success = true;
     probType = NORMAL_PROBLEM;
@@ -723,8 +724,8 @@ const loader = setInterval(async () => {
     probStats = parseStats();
   }
 
-  console.log(probStatement)
-  console.log(probStats)
+  console.log(probStatement);
+  console.log(probStats);
 
   if (probStatement !== null) {
     switch (probType) {
